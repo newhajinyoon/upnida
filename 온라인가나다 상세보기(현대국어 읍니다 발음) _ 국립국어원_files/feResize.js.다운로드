@@ -1,0 +1,274 @@
+var fePage = fePage || {};
+(function(fePage, $, window, document, undefined) {
+	var $window 	= $(window),
+		$document = $(document),
+		$html = $document.find('html'),
+		$body = $document.find('body'),		
+		$curMode = feUI.viewModeCheck();
+	
+	fePage.scalePagingManual = function(){
+		var viewChk = feUI.viewModeCheck();
+		if($(".paging").hasClass('_PagingS')){
+			if(viewChk == '_M'||viewChk =='_L'){
+				fePage.scalePaging('d','class','');
+				$(".paging").removeClass("_PagingS").addClass("_PagingL");
+			}
+		}else if($(".paging").hasClass('_PagingL')){
+				if(viewChk =='_S'){
+					fePage.scalePaging('m','class','');
+					$(".paging").removeClass("_PagingL").addClass("_PagingS");
+				}
+		}else{
+			fePage.scalePaging('d','class','');
+			$(".paging").addClass("_PagingL");
+		}
+	};
+	
+	fePage.scalePagingTargetIdManual = function(targetId){
+		var viewChk = feUI.viewModeCheck();
+		if($("#"+targetId).hasClass('_PagingS')){
+			if(viewChk == '_M'||viewChk =='_L'){
+				fePage.scalePaging('d','id',targetId);
+				$("#"+targetId).removeClass("_PagingS").addClass("_PagingL");
+			}
+		}else if($("#"+targetId).hasClass('_PagingL')){
+				if(viewChk =='_S'){
+					fePage.scalePaging('m','id',targetId);
+					$("#"+targetId).removeClass("_PagingL").addClass("_PagingS");
+				}
+		}else{
+			fePage.scalePaging('d','id',targetId);
+			$("#"+targetId).addClass("_PagingL");
+		}
+	};
+	
+	fePage.scalePaging = function(mode, targetKind, targetId){
+		
+		if(targetKind=='id'){
+			$paging 	= $("#"+targetId);
+		}else{
+			$paging 	= $(".paging");	
+		}
+		var pageSize = $paging.attr("data-pageBlockSize");
+		var pageBlockSize = $paging.attr("data-pageSize");
+		var sb = "";
+		
+		if(mode=='m'){
+			pageBlockSize = 5;
+		}
+		
+		var totalCnt = $paging.attr("data-totalCnt");
+		var currentPage = $paging.attr("data-currentPage");		
+		var jsFunction = $paging.attr("data-jsFunction");
+		
+		if(window.location.href.search("front_eng") == -1){
+			var imgthis   = "현재 페이지";
+			var imgfirst = "첫 페이지";
+			var imgpre   = "이전 페이지";
+			var imgnext  = "다음 페이지";
+			var imgend   = "마지막 페이지";
+		}else{
+			var imgthis   = "current page";
+			var imgfirst = "First page";
+			var imgpre   = "Prev page";
+			var imgnext  = "Next page";
+			var imgend   = "Last page";
+		}
+		
+		
+		if(totalCnt==0){
+			//empty setting
+			sb = sb + "<a class='first' href='javascript:"+ jsFunction + "(1)' title='"+imgfirst+"'>" + imgfirst + "</a>";
+			sb = sb + "<a class='prev' href='javascript:"+ jsFunction + "(1)' title='"+imgpre+"'>" + imgpre + "</a>";
+			sb = sb + "<strong title='"+imgthis+"'>1</strong> ";
+			sb = sb + "<a class='next' href='javascript:"+ jsFunction + "(1)' title='"+imgnext+"'>" + imgnext + "</a>";
+			sb = sb + "<a class='last' href='javascript:"+ jsFunction + "(1)' title='"+imgend+"'>" + imgend + "</a>";
+			
+			$paging.html(sb);
+			
+		}else{
+			if ((parseInt(totalCnt) % parseInt(pageSize)) == 0 )  {		
+				totalPage = (parseInt(totalCnt) / parseInt(pageSize));
+			} else {			
+				totalPage = parseInt(parseInt(totalCnt) / parseInt(pageSize)) + 1;
+			}
+			  		
+			var bsPage = (parseInt( ( parseInt( currentPage) - 1 ) / parseInt(pageBlockSize) ) ) * parseInt(pageBlockSize) + 1;
+
+			iStart = bsPage;
+			
+			if (parseInt(bsPage) + parseInt(pageBlockSize)-1 < parseInt(totalPage) ){			
+				iEnd = parseInt(bsPage)+ parseInt(pageBlockSize)-1;
+			}else{
+				iEnd = parseInt(totalPage) ;
+			}
+
+			var tmpPage = parseInt((currentPage-1)/pageBlockSize);
+
+			var bePage = 1;
+			var nxPage = 1;
+			if (tmpPage == 0){
+				  bePage = 1;
+			}else{
+				  bePage = parseInt(tmpPage * pageBlockSize);
+			}
+			
+			nxPage = parseInt(bsPage) + parseInt(pageBlockSize);
+				
+			sb = sb + "<a class='first' href='javascript:"+ jsFunction + "(1)' title='"+imgfirst+"'>" + imgfirst + "</a>";
+			
+			if(bePage>0){
+				sb = sb + "<a class='prev' href='javascript:"+ jsFunction + "(" + bePage + ");' title='"+imgpre+"'>"+ imgpre +"</a>";
+			} else {
+				sb = sb + "<a class='prev' href='#' title='"+imgpre+"' >"+ imgpre +"</a>";
+			}
+//			  
+			for(var i = iStart; i <= iEnd; i++)  {
+				if( i == currentPage && i/1000 >= 1)   {
+					sb = sb + "<strong title='"+imgthis+"'>" +(i+"").substring(0,3)+"<span style=\"color:#666;\">"+(i+"").substring(3,4)+"</span>" + "</strong> ";
+				}else if( i == currentPage){
+					sb = sb + "<strong title='"+imgthis+"'>" + i + "</strong> ";
+				}else {
+					sb = sb + "<a href='javascript:" + jsFunction + "(" + i + ");'>"+ i +"</a>  ";
+				}
+			}
+			
+			if(nxPage <= totalPage){
+				sb = sb + "<a class='next' href='javascript:" + jsFunction + "("+ nxPage +");' title='"+imgnext+"'>"+ imgnext +"</a>";
+			} else {
+				sb = sb + "<a class='next' href='#' onclick='return false;' title='"+imgnext+"'>"+ imgnext +"</a> ";
+			}
+			
+			sb = sb + "<a class='last' href='javascript:" + jsFunction + "("+ parseInt(totalPage) +");' title='"+imgend+"'>"+ imgend +"</a> ";
+			
+			$paging.html(sb);
+		}
+		
+	};
+	
+	
+	$window.on({
+		'resize': function(e) {			
+			fePage.scalePagingManual();
+		}
+	});
+	
+	if($curMode=='_S'){
+		fePage.scalePaging('m');
+		$paging.addClass("_PagingS");
+	}else{
+		fePage.scalePaging('d');
+		$paging.addClass("_PagingL");
+	}
+	
+	
+	$("#formTopSearch").submit(function(event){
+		var searchTopQuery = $("#searchTopQuery").val();
+		var topSearchKind = $("#topSearchKind").val();
+		if(searchTopQuery==""){
+			alert("검색어를 입력하세요");
+			return false;
+		}
+		
+		if(topSearchKind=="1"){		//통합검색	target="_self"
+			$("#formTopSearch").attr("action","/front/search/searchAllList.do");
+			$("#formTopSearch").attr("target","_self");
+			//$("#formTopSearch").submit();
+		}else if(topSearchKind=="2"){	//표준국어대사전	target="_blank"
+			var f = document.formTopSearch;
+			var p	= f.PageRow.value;
+			var t	= f.Table.value;
+			var g	= f.Gubun.value;
+			var s	= "";
+			var str	= "";
+			
+			s = searchTopQuery;
+
+			if(s == ""){
+				$("#searchTopQuery").focus();
+				return;
+			}
+			str = s.replace(/^\s* /,'').replace(/\s*$/,'');
+			f.SearchText.value=str;
+			if (str.length == 0){
+				alert("찾을 말 또는 단어를 입력하세요.");
+				if(f.SearchText.type!="hidden"){
+					$("#searchTopQuery").focus();
+					return;
+				}
+			}else{
+				for(var i=0;i<str.length;i++)
+				if (str.charAt(i)=="'" || str.charAt(i)=="\"")
+				{
+					alert("따옴표 문자는 쓰실수 없습니다.");
+					return;
+				}
+			}
+
+			f.target="_blank";
+			f.action="http://stdweb2.korean.go.kr/search/List_dic.jsp";
+			
+		}else if(topSearchKind=="3"){	//우리말샘
+			var f = document.formTopSearch;
+			var s	= "";
+			var str	= "";
+
+			s = searchTopQuery;
+			if(s == ""){
+				$("#searchTopQuery").focus();
+				return;
+			}
+			str = s.replace(/^\s* /,'').replace(/\s*$/,'');
+			f.openSearchText.value=str;
+			if (str.length == 0){
+				alert("찾을 말 또는 단어를 입력하세요.");
+				if(f.openSearchText.type!="hidden"){
+					$("#searchTopQuery").focus();
+					return;
+				}
+			}else{
+				for(var i=0;i<str.length;i++)
+				if (str.charAt(i)=="'" || str.charAt(i)=="\"")
+				{
+					alert("따옴표 문자는 쓰실수 없습니다.");
+					return;
+				}
+			}
+
+			f.query.value = s;
+			f.action="https://opendict.korean.go.kr/search/searchResult";
+			f.target="_blank";
+		}else if(topSearchKind=="4"){	//한국어기초사전
+			var f = document.formTopSearch;
+
+			var s			= "";
+			var str		= "";
+
+			s = searchTopQuery;
+			if(s == ""){
+				$("#searchTopQuery").focus();
+				return;
+			}
+			str = s.replace(/^\s* /,'').replace(/\s*$/,'');
+			f.krSearchText.value=str;
+			if (str.length == 0){
+				alert("찾을 말 또는 단어를 입력하세요.");
+				if(f.krSearchText.type!="hidden"){
+					$("#searchTopQuery").focus();
+					return;
+				}
+			}else{
+				for(var i=0;i<str.length;i++)
+				if (str.charAt(i)=="'" || str.charAt(i)=="\"")
+				{
+					alert("따옴표 문자는 쓰실수 없습니다.");
+					return;
+				}
+			}
+			f.mainSearchWord.value = s;
+			f.action="https://krdict.korean.go.kr/dicSearch/search";
+			f.target="_blank";
+		}
+		
+	});
+})(fePage, jQuery, window, document);;
